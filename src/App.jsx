@@ -22,17 +22,29 @@ function getOwnerByID(ownerId) {
     || null;
 }
 
-function getFilteredByOwner(owner) {
+function getFilteredByOwner(owner, query) {
+  let filteredProduct = products.filter(product => product.user.name === owner);
+
   if (owner === 'All') {
-    return products;
+    filteredProduct = [...products];
   }
 
-  return products.filter(product => product.user.name === owner);
+  if (query) {
+    const correctQuery = query.trim().toLowerCase();
+
+    return (
+      filteredProduct.filter(product => product.name
+        .toLowerCase().includes(correctQuery))
+    );
+  }
+
+  return filteredProduct;
 }
 
 export const App = () => {
   const [selectedUser, setSelectedUser] = useState('All');
-  const visibleProducts = getFilteredByOwner(selectedUser);
+  const [query, setQuery] = useState('');
+  const visibleProducts = getFilteredByOwner(selectedUser, query);
 
   return (
     <div className="section">
@@ -78,7 +90,10 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                  }}
+                  value={query}
                 />
 
                 <span className="icon is-left">
@@ -86,12 +101,16 @@ export const App = () => {
                 </span>
 
                 <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
+                  {query
+                    && (
+                      <button
+                        data-cy="ClearButton"
+                        type="button"
+                        className="delete"
+                        onClick={() => setQuery('')}
+                      />
+                    )
+                  }
                 </span>
               </p>
             </div>
@@ -142,7 +161,11 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
-                onClick={() => setSelectedUser('All')}
+                onClick={() => {
+                  setSelectedUser('All');
+                  setQuery('');
+                }
+                }
               >
                 Reset all filters
               </a>
@@ -151,10 +174,12 @@ export const App = () => {
         </div>
 
         <div className="box table-container">
-          <p data-cy="NoMatchingMessage">
-            {visibleProducts.length === 0
-              && `No products matching selected criteria`}
-          </p>
+          {visibleProducts.length === 0
+            && (
+              <p data-cy="NoMatchingMessage">
+                No products matching selected criteria
+              </p>
+            )}
 
           {visibleProducts.length !== 0
             && (
