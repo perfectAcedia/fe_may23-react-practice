@@ -22,8 +22,17 @@ function getOwnerByID(ownerId) {
     || null;
 }
 
+function getFilteredByOwner(owner) {
+  if (owner === 'All') {
+    return products;
+  }
+
+  return products.filter(product => product.user.name === owner);
+}
+
 export const App = () => {
   const [selectedUser, setSelectedUser] = useState('All');
+  const visibleProducts = getFilteredByOwner(selectedUser);
 
   return (
     <div className="section">
@@ -38,31 +47,28 @@ export const App = () => {
               <a
                 data-cy="FilterAllUsers"
                 href="#/"
+                onClick={() => setSelectedUser('All')}
+                className={classNames(null, {
+                  'is-active': selectedUser === 'All',
+                })}
               >
                 All
               </a>
 
-              <a
-                data-cy="FilterUser"
-                href="#/"
-              >
-                User 1
-              </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-                className="is-active"
-              >
-                User 2
-              </a>
-
-              <a
-                data-cy="FilterUser"
-                href="#/"
-              >
-                User 3
-              </a>
+              {usersFromServer.map(user => (
+                <a
+                  key={user.id}
+                  data-cy="FilterUser"
+                  href="#/"
+                  onClick={() => selectedUser !== user.name
+                    && setSelectedUser(user.name)}
+                  className={classNames(null, {
+                    'is-active': selectedUser === user.name,
+                  })}
+                >
+                  {user.name}
+                </a>
+              ))}
             </p>
 
             <div className="panel-block">
@@ -205,30 +211,30 @@ export const App = () => {
             </thead>
 
             <tbody>
-              {products.map(product => (
-                <Fragment key={product.id}>
+              {visibleProducts.map(visibleProduct => (
+                <Fragment key={visibleProduct.id}>
                   <tr data-cy="Product">
                     <td className="has-text-weight-bold" data-cy="ProductId">
-                      {product.id}
+                      {visibleProduct.id}
                     </td>
 
                     <td
                       data-cy="ProductName"
                     >
-                      {product.name}
+                      {visibleProduct.name}
                     </td>
                     <td data-cy="ProductCategory">
-                      {`${product.category.icon} - ${product.category.title}`}
+                      {`${visibleProduct.category.icon} - ${visibleProduct.category.title}`}
                     </td>
 
                     <td
                       className={
                         classNames('has-text-link', {
-                          'has-text-danger': product.user.sex === 'f',
+                          'has-text-danger': visibleProduct.user.sex === 'f',
                         })}
                       data-cy="ProductUser"
                     >
-                      {product.user.name}
+                      {visibleProduct.user.name}
                     </td>
                   </tr>
                 </Fragment>
